@@ -22,14 +22,14 @@ class UsersController extends Controller {
 		//$list = M('users')->where('id='.$q)->select();
 		$list = M('users')->where('Hometown="Quahog"')->select();
 		//echo "steed is great!";
-		//var_dump($list);
+		var_dump($list);
 		//echo '不统计多维数组：'.count($list,0);//count($arr,COUNT_NORMAL)
 		//echo "<br/>";
 		//echo '统计多维数组：'.count($list,1);//count($arr,COUNT_RECURSIVE)
 			
-			
+
 		$count=count($list,0);
-			
+/*
 		echo "<table border='1'>
 			<tr>
 			<th>Firstname</th>
@@ -48,6 +48,8 @@ class UsersController extends Controller {
 		}
 			
 		echo "</table>";
+*/
+
 			
 	}
 }

@@ -20,7 +20,7 @@ function stateChanged()
 { 
 if (xmlHttp.readyState==4 || xmlHttp.readyState=="complete")
  { 
-	//alert(xmlHttp.responseText)
+	alert(xmlHttp.responseText)
  document.getElementById("txtHint").innerHTML=xmlHttp.responseText 
  } 
 }
