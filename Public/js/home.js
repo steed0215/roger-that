@@ -12,8 +12,6 @@ $(document).ready(
 					});
 
 			nav_model();
-			// initFileInput("file-Portrait",
-			// "http://192.168.119.98/tp323/public/upload/");
 
 		});
 
@@ -63,21 +61,9 @@ function nav_model() {
 
 	initModelTable();
 
+
 }
 
-function initFileInput(ctrlName, uploadUrl) {
-	var control = $('#' + ctrlName);
-
-	control.fileinput({
-		language : 'zh', // 设置语言
-		uploadUrl : uploadUrl, // 上传的地址
-		allowedFileExtensions : [ 'jpg', 'png', 'gif' ],// 接收的文件后缀
-		showUpload : true, // 是否显示上传按钮
-		showCaption : false,// 是否显示标题
-		browseClass : "btn btn-primary", // 按钮样式
-		layoutTemplates : "modal"
-	});
-}
 
 function initModelTable() {
 	// 先销毁表格
@@ -208,20 +194,42 @@ function nav_firmware() {
 
 	$("button#btn_2").attr("data-toggle", "modal");
 	$("button#btn_2").attr("data-target", "#firmware_btn_add");
+
+	$("button#create_diff_btn").attr("data-toggle", "modal");
+	$("button#create_diff_btn").attr("data-target", "#create_diff");
 	
 	$.ajax({
 		type : 'post',
 		dataType : "json",
 		url : 'http://192.168.119.98/tp323/index.php/home/ota/query_all_models',
 		success : function(data) {
-			
+
 			if(data != ""){
-				var sid = document.getElementById("ddlResourceType");		
+				var sid = document.getElementById("ddlResourceType");
 				sid.options.length=0;
 				for(var i=0;i<data.length;i++)
-					{								
+				{
 					sid.options.add(new Option(data[i].name,i));
-					}
+				}
+			}
+		}
+	});
+
+
+	//初始化创建差分包模态框中，源版本(select)的下来内容
+	$.ajax({
+		type : 'post',
+		dataType : "json",
+		url : 'http://192.168.119.98/tp323/index.php/home/ota/query_all_versions',
+		success : function(data) {
+
+			if(data != ""){
+				var sid = document.getElementById("source_version");
+				sid.options.length=0;
+				for(var i=0;i<data.length;i++)
+				{
+					sid.options.add(new Option(data[i].version,i));
+				}
 			}
 		}
 	});
@@ -246,18 +254,77 @@ function nav_firmware() {
 								});
 					});
 
-	
-			$.ajax({
-				type : 'post',
-				dataType : "json",
-				url : 'http://192.168.119.98/tp323/index.php/home/ota/query_all_models',
-				success : function(data) {
 
-				}
+
+	$("#package_upload").fileinput({
+		language : 'zh', // 设置语言
+		uploadUrl : "http://192.168.119.98/tp323/index.php/home/ota/upload", // 上传的地址
+		//allowedFileExtensions : [ 'jpg', 'png', 'gif' ],// 接收的文件后缀
+		showUpload : false, // 是否显示上传按钮
+		showCaption : false,// 是否显示标题
+		browseClass : "btn btn-primary", // 按钮样式
+		layoutTemplates : "modal",
+		//uploadExtraData : {id:23}
+	});
+
+
+
+	$("button#create_package_submit_btn")
+		.click(
+			function() {
+
+				//$("#package_upload").fileinput("upload");
+
+				//alert($("div#create_diff_content form").serialize());
+				$.ajax({
+					type : 'post',
+					url : 'http://192.168.119.98/tp323/index.php/home/ota/create_diff',
+					data : 'source_version='+$("#source_version").find("option:selected").text()+'&'+$("div#create_diff_content form")
+						.serialize(),
+					success : function(data) {
+						// your code
+						alert(data);
+						$("#package_upload").fileinput('refresh',
+							{
+
+								uploadExtraData : { id: data }
+
+							});
+						//initFileInput(data);
+						$("#package_upload").fileinput('upload');
+
+
+					},
+
+					error : function(data) {
+						// your code
+						alert("出错啦！请检查提交的表单是否包含中文，暂不支持中文:(");
+
+
+					}
+
+				});
+
 			});
+
+
 
 			initFirmwareTable();
 
+}
+
+function initFileInput(id) {
+
+	$("#package_upload").fileinput({
+		language : 'zh', // 设置语言
+		uploadUrl : "http://192.168.119.98/tp323/index.php/home/ota/upload", // 上传的地址
+		//allowedFileExtensions : [ 'jpg', 'png', 'gif' ],// 接收的文件后缀
+		showUpload : false, // 是否显示上传按钮
+		showCaption : false,// 是否显示标题
+		browseClass : "btn btn-primary", // 按钮样式
+		layoutTemplates : "modal",
+		uploadExtraData: {id:9}
+	});
 }
 
 function initFirmwareTable() {
@@ -355,34 +422,33 @@ window.firmwareOperateEvents = {
 };
 
 function diffOperateFormatter(value, row, index) {
-	return ['<a class="diff" href="javascript:void(0)" title="Diff">',
+	return ['<a class="diff" href="javascript:void(0)" title="Diff" id="diff_icon">',
 			'<i class="glyphicon glyphicon-transfer"></i>', '</a>' ].join('');
 }
 
 
 window.diffOperateEvents = {
 		'click .diff' : function(e, value, row, index) {
-		$("#public_tab").bootstrapTable('remove', {
-			field : 'id',
-			values : [ row.id ]
-		});
 
-		$.ajax({
-					type : 'post',
-					data : {
-						id : row.id
-					},
-					dataType : "json",
-					url : 'http://192.168.119.98/tp323/index.php/home/ota/delete_version',
-					success : function(data) {
-						// your code
-						alert("删除成功");
+			$("a#diff_icon").attr("data-toggle", "modal");
+			$("a#diff_icon").attr("data-target", "#diff_display");
 
-					}
-				});
+			$("div#create_diff").attr("data-model", row.model);
+			$("div#create_diff").attr("data-version", row.version);
+
+			$("div#create_diff").on('show.bs.modal', function () {
+				//$("div#create_diff").data('version');
+				//alert($("div#create_diff").data('model'));
+				//alert($("div#create_diff").data('version'));
+				$("#create_diff_model").val($("div#create_diff").attr('data-model'));
+				$("#create_diff_target_version").val($("div#create_diff").attr('data-version'));
+			});
+
 
 	}
+
 };
+
 
 
 

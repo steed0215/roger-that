@@ -164,5 +164,70 @@
 	</div><!-- /.modal -->
 </div>
 
+
+	<div class="modal fade" id="diff_display" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+						&times;
+					</button>
+					<h4 class="modal-title">
+						差分包列表
+					</h4>
+				</div>
+				<div class="modal-body" id="diff_display_content">
+					<table>
+
+					</table>
+				</div>
+
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭
+					</button>
+					<button type="button" class="btn btn-primary" id="create_diff_btn" data-dismiss="modal">
+						新建差分包
+					</button>
+				</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal -->
+	</div>
+
+	<div class="modal fade" id="create_diff" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+						&times;
+					</button>
+					<h4 class="modal-title">
+						新建差分包
+					</h4>
+				</div>
+				<div class="modal-body" id="create_diff_content">
+					<form>
+						机型: <input name="model" type="text" class="form-control input-sm" readonly="true" id="create_diff_model"/><br />
+						源版本：<select class="form-control input-sm" id="source_version" ></select><br />
+						目标版本: <input name="target_version" type="text" class="form-control input-sm" readonly="true" id="create_diff_target_version"/><br/>
+
+						<input id="package_upload" name="package_upload[]" type="file" multiple class="file-loading">
+						<input type="file" name="version_file" id="package_upload_1"/>
+						描述: <input type="text" class="form-control input-sm" name="description" /><br />
+					</form>
+				</div>
+
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭
+					</button>
+					<button type="button" class="btn btn-primary" id="create_package_submit_btn" data-dismiss="modal">
+						提交更改
+					</button>
+				</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal -->
+	</div>
+
 </body>
 </html>

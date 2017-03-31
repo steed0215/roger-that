@@ -74,6 +74,49 @@ class OtaController extends Controller {
 	
 	}
 	
+	public function upload(){
+		$id=$_POST['id'];
+		\Think\Log::record('id=');
+		\Think\Log::record($id);
+		$upload = new \Think\Upload();// 实例化上传类
+		$upload->maxSize   =     0 ;// 设置附件上传大小
+		$upload->exts      =     "";// 设置附件上传类型
+		$upload->rootPath  =     './'; // 设置附件上传根目录
+		$upload->savePath  =     'Public/upload/'; // 设置附件上传（子）目录
+		$upload->saveName = array('date','Y-m-d');
+		$upload->autoSub = false;
+		// 上传文件
+		$info = $upload->upload();
+		if(!$info) {// 上传错误提示错误信息
+			//$this->error($upload->getError());
+			\Think\Log::record('error!!!!!!!!');
+			\Think\Log::record($info);
+			\Think\Log::record($upload->getError());
+		}else{// 上传成功
+			//$this->success('上传成功！');
+			\Think\Log::record('sucess!!!!!!!!');
+			$model = M('package');
+			$data['size'] = $info[0]['size'];
+			$data['file_url'] = $info[0]['savepath'];
+
+			$model->where("id=$id")->save($data); // 根据条件更新记录
+		}
+		$this->ajaxReturn(json_encode(new stdClass));
+	}
 	
+	public function create_diff()
+	{
+		// 实例化User模型
+		$User = M('package');
+		// 根据表单提交的POST数据创建数据对象
+		$User->create();
+		$data['source_version'] = $_POST['source_version'];
+		$data['target_version'] = $_POST['target_version'];
+		$data['status'] = 1;
+		$data['description'] = $_POST['description'];
+		//var_dump($data);
+		
+		$this->ajaxReturn($User->add($data));
+	}
 	
 }
