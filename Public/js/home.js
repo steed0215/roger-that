@@ -47,6 +47,7 @@ function nav_model() {
 										// alert("提交成功");
 									}
 								});
+						$("#public_tab").bootstrapTable('refresh', {silent: true});
 					});
 
 	
@@ -252,6 +253,7 @@ function nav_firmware() {
 										// alert("提交成功");
 									}
 								});
+						$("#public_tab").bootstrapTable('refresh', {silent: true});
 					});
 
 
@@ -268,42 +270,52 @@ function nav_firmware() {
 	});
 
 
+	$("#package_upload").on('fileuploaded', function(event, data, previewId, index) {
+		var response = data.response;
+		console.log('File uploaded triggered');
+
+		$.ajax({
+			type : 'post',
+			url : 'http://192.168.119.98/tp323/index.php/home/ota/create_diff',
+			data : 'source_version='+$("#source_version").find("option:selected").text()+'&'+$("div#create_diff_content form")
+				.serialize()+'&id='+response.id,
+			success : function(data) {
+				// your code
+				//alert(data);
+				//$("#package_upload").fileinput('refresh',
+					//{
+
+						//uploadExtraData : { id: data }
+
+					//});
+				//initFileInput(data);
+				//$("#package_upload").fileinput('upload');
+
+
+			},
+
+			error : function(data) {
+				// your code
+				alert("出错啦！请检查提交的表单是否包含中文，暂不支持中文:(");
+
+
+			}
+
+		});
+
+		$("#diff_tab").bootstrapTable('refresh', {silent: true});
+
+	});
+
 
 	$("button#create_package_submit_btn")
 		.click(
 			function() {
 
-				//$("#package_upload").fileinput("upload");
+				$("#package_upload").fileinput("upload");
 
 				//alert($("div#create_diff_content form").serialize());
-				$.ajax({
-					type : 'post',
-					url : 'http://192.168.119.98/tp323/index.php/home/ota/create_diff',
-					data : 'source_version='+$("#source_version").find("option:selected").text()+'&'+$("div#create_diff_content form")
-						.serialize(),
-					success : function(data) {
-						// your code
-						alert(data);
-						$("#package_upload").fileinput('refresh',
-							{
 
-								uploadExtraData : { id: data }
-
-							});
-						//initFileInput(data);
-						$("#package_upload").fileinput('upload');
-
-
-					},
-
-					error : function(data) {
-						// your code
-						alert("出错啦！请检查提交的表单是否包含中文，暂不支持中文:(");
-
-
-					}
-
-				});
 
 			});
 
@@ -346,7 +358,7 @@ function initFirmwareTable() {
 						// showToggle:true, //是否显示详细视图和列表视图的切换按钮
 						showColumns : true, // 显示下拉框勾选要显示的列
 						showRefresh : true, // 显示刷新按钮
-						detailView : true,
+						//detailView : true,
 						sidePagination : "client", // 表示服务端请求
 						detailFormatter : detailFormatter,
 						// 设置为undefined可以获取pageNumber，pageSize，searchText，sortName，sortOrder
@@ -383,7 +395,7 @@ function initFirmwareTable() {
 							events : firmwareOperateEvents,
 							formatter : firmwareOperateFormatter
 						},{
-							field : 'diff_packet',
+							field : 'diff_package',
 							title : '差分包',
 							align : 'center',
 							events : diffOperateEvents,
@@ -392,8 +404,51 @@ function initFirmwareTable() {
 					});
 }
 
+function statusOperateFormatter(value, row, index) {
+    if(row.status == 1)
+    {
+		return ['<a class="status" href="javascript:void(0)" title="测试中" id="diff_status">测试中',
+			'<i></i>', '</a>' ].join('');
+    }else if(row.status == 0){
+		return ['<a class="status" href="javascript:void(0)" title="已发布" id="diff_status">已发布',
+			'<i></i>', '</a>' ].join('');
+    }
+}
+
+window.statusOperateEvents = {
+    'click .status' : function(e, value, row, index) {
+        var status = row.status;
+        if(status == 1){
+            status = 0;
+			//$("#diff_status").text("已发布");
+        }else if(status == 0){
+            status = 1;
+			//$("#diff_status").text("测试中");
+        }
+
+        $.ajax({
+            type : 'post',
+            data : {
+                id : row.id,
+                status : status
+            },
+            dataType : "json",
+            url : 'http://192.168.119.98/tp323/index.php/home/ota/change_status',
+            success : function(data) {
+                // your code
+
+
+            }
+        });
+
+		$("#diff_tab").bootstrapTable('refresh', {silent: true});
+
+    }
+};
+
+
 function firmwareOperateFormatter(value, row, index) {
-	return ['<a class="remove" href="javascript:void(0)" title="Remove">',
+	return ['<a class="remove" href="javascript:void(0)" title="删除">',
 			'<i class="glyphicon glyphicon-remove"></i>', '</a>' ].join('');
 }
 
@@ -417,12 +472,12 @@ window.firmwareOperateEvents = {
 
 					}
 				});
-
+			//$("#public_tab").bootstrapTable('refresh', {silent: true});
 	}
 };
 
 function diffOperateFormatter(value, row, index) {
-	return ['<a class="diff" href="javascript:void(0)" title="Diff" id="diff_icon">',
+	return ['<a class="diff" href="javascript:void(0)" title="差分包" id="diff_icon">',
 			'<i class="glyphicon glyphicon-transfer"></i>', '</a>' ].join('');
 }
 
@@ -435,6 +490,7 @@ window.diffOperateEvents = {
 
 			$("div#create_diff").attr("data-model", row.model);
 			$("div#create_diff").attr("data-version", row.version);
+			initDiffTable(row.version);
 
 			$("div#create_diff").on('show.bs.modal', function () {
 				//$("div#create_diff").data('version');
@@ -448,6 +504,68 @@ window.diffOperateEvents = {
 	}
 
 };
+
+function initDiffTable(version) {
+	// 先销毁表格
+	$('#diff_tab').bootstrapTable('destroy');
+	// 初始化表格,动态从服务器加载数据
+	$("#diff_tab")
+		.bootstrapTable(
+			{
+				method : "get", // 使用get请求到服务器获取数据
+				url : "http://192.168.119.98/tp323/index.php/home/ota/query_diffs?version="+version, // 获取数据的Servlet地址
+				striped : true, // 表格显示条纹
+				pagination : true, // 启动分页
+				pageSize : 5, // 每页显示的记录数
+				pageNumber : 1, // 当前第几页
+				pageList : [ 1, 5, 10 ], // 记录数可选列表
+				search : true, // 是否启用查询
+				// toolbar: '#toolbar',
+				// showToggle:true, //是否显示详细视图和列表视图的切换按钮
+				showColumns : true, // 显示下拉框勾选要显示的列
+				showRefresh : true, // 显示刷新按钮
+				//detailView : true,
+				sidePagination : "client", // 表示服务端请求
+				//detailFormatter : detailFormatter,
+				// 设置为undefined可以获取pageNumber，pageSize，searchText，sortName，sortOrder
+				// 设置为limit可以获取limit, offset, search, sort, order
+				// queryParamsType : "undefined",
+				// queryParams: function queryParams(params) { //设置查询参数
+				// var param = {
+				// pageNumber: params.pageNumber,
+				// pageSize: params.pageSize,
+				// orderNum : $("#orderNum").val()
+				// };
+				// return param;
+				// },
+				onLoadSuccess : function() { // 加载成功时执行
+					// alert("加载成功");
+				},
+				onLoadError : function() { // 加载失败时执行
+					alert("加载数据失败");
+				},
+				columns : [
+					{
+						field : 'source_version',
+						title : '源版本'
+					}, {
+						field : 'target_version',
+						title : '目标版本'
+					}, {
+						field : 'description',
+						title : '描述'
+					}, {
+						field : 'size',
+						title : '大小'
+					},{
+						field : 'status',
+						title : '发布',
+						align : 'center',
+						events : statusOperateEvents,
+						formatter : statusOperateFormatter
+					} ]
+			});
+}
 
 
 
