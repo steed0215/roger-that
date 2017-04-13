@@ -1,19 +1,36 @@
+var lock = false;
+
 $(document).ready(
 		function() {
 			$("a#nav_model").click(function() {
 				nav_model();
+				beActive($(this));
 			});
 
 			$("a#nav_firmware").click(
 					function() {
 
 						nav_firmware();
-
+						beActive($(this));
+						//window.location.reload();
+						//$("a#nav_firmware").parent().addClass("active");
 					});
 
-			nav_model();
+			nav_model();//初始页面为机型管理
+			preventReSubmit();
 
 		});
+
+function preventReSubmit() {
+
+
+
+}
+
+function beActive(obj){
+	$(".active").removeClass('active');
+	obj.parent().addClass('active');
+}
 
 function nav_model() {
 
@@ -36,6 +53,8 @@ function nav_model() {
 			.click(
 					function() {
 						// alert($("div#model_btn_add_body form").serialize());
+						if (lock) {return;}
+						lock = true;
 						$
 								.ajax({
 									type : 'post',
@@ -43,8 +62,10 @@ function nav_model() {
 									data : $("div#model_btn_add_body form")
 											.serialize(),
 									success : function(data) {
-										// your code
-										// alert("提交成功");
+										lock = false;
+									},
+									error : function(data) {
+										lock = false;
 									}
 								});
 						$("#public_tab").bootstrapTable('refresh', {silent: true});
@@ -240,8 +261,8 @@ function nav_firmware() {
 	$("button#firmware_btn_add_submit_btn")
 			.click(
 					function() {
-					    
-					    
+						if (lock) {return;}
+						lock = true;
 						 //alert($("div#firmware_btn_add_body form").serialize());
 						$.ajax({
 									type : 'post',
@@ -249,9 +270,11 @@ function nav_firmware() {
 									data : 'model_name='+$("#ddlResourceType").find("option:selected").text()+'&'+$("div#firmware_btn_add_body form")
 											.serialize(),
 									success : function(data) {
-										// your code
-										// alert("提交成功");
-									}
+										lock = false;
+									},
+							error : function(data) {
+								lock = false;
+							}
 								});
 						$("#public_tab").bootstrapTable('refresh', {silent: true});
 					});
@@ -271,8 +294,10 @@ function nav_firmware() {
 
 
 	$("#package_upload").on('fileuploaded', function(event, data, previewId, index) {
+		if (lock) {return;}
+		lock = true;
 		var response = data.response;
-		console.log('File uploaded triggered');
+		//console.log('File uploaded triggered');
 
 		$.ajax({
 			type : 'post',
@@ -291,13 +316,13 @@ function nav_firmware() {
 				//initFileInput(data);
 				//$("#package_upload").fileinput('upload');
 
-
+				lock = true;
 			},
 
 			error : function(data) {
 				// your code
 				alert("出错啦！请检查提交的表单是否包含中文，暂不支持中文:(");
-
+				lock = true;
 
 			}
 
@@ -318,6 +343,14 @@ function nav_firmware() {
 
 
 			});
+
+
+	$("#create_diff").on('hidden.bs.modal', function () {
+		//$(this).removeData("bs.modal");
+		//$("#create_diff").empty();
+		$("#create_diff form").children().val('').removeAttr('selected');
+		//document.createElement('form').reset();
+	});
 
 
 

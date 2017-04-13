@@ -16,6 +16,7 @@
 <script src="__PUBLIC__/js/fileinput_locale_zh.js" type="text/javascript"></script>
 <script src="__PUBLIC__/js/bootstrap-table.js"></script>
 <script src="__PUBLIC__/js/bootstrap-table-zh-CN.js"></script>
+
 </head>
 <body>
 	<div class="container">
@@ -33,7 +34,7 @@
 		<div id="content" class="row-fluid">
 
 			<div class="col-md-3">
-				<ul class="nav nav-tabs nav-stacked">
+				<ul class="nav nav-pills nav-stacked">
 					<li class="active"><a href='#' id="nav_model">机型管理</a></li>
 					<li><a href='#' id="nav_firmware">固件管理</a></li>
 					<li><a href='#' id="nav_update_log">升级详情</a></li>
@@ -206,9 +207,9 @@
 					</h4>
 				</div>
 				<div class="modal-body" id="create_diff_content">
-					<form>
+					<form autocomplete='off'>
 						机型: <input name="model" type="text" class="form-control input-sm" readonly="true" id="create_diff_model"/><br />
-						源版本：<select class="form-control input-sm" id="source_version" ></select><br />
+						源版本：<select class="form-control input-sm" id="source_version" val=""></select><br />
 						目标版本: <input name="target_version" type="text" class="form-control input-sm" readonly="true" id="create_diff_target_version"/><br/>
 
 						<input id="package_upload" name="package_upload[]" type="file" multiple class="file-loading">

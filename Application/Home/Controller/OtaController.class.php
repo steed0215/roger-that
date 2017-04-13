@@ -3,6 +3,7 @@
 namespace Home\Controller;
 use Think\Controller;
 
+
 class OtaController extends Controller {
 	
 	public function Ota()
@@ -83,7 +84,7 @@ class OtaController extends Controller {
 		$upload->exts      =     "";// 设置附件上传类型
 		$upload->rootPath  =     './'; // 设置附件上传根目录
 		$upload->savePath  =     'Public/upload/'; // 设置附件上传（子）目录
-		$upload->saveName = array('date','Y-m-d');
+		$upload->saveName = date('Y-m-d').'_'.mt_rand();//array('date','Y-m-d');
 		$upload->autoSub = false;
 		// 上传文件
 		$info = $upload->upload();
@@ -97,7 +98,7 @@ class OtaController extends Controller {
 			\Think\Log::record('sucess!!!!!!!!');
 			$model = M('package');
 			$data['size'] = $info[0]['size'];
-			$data['file_url'] = $info[0]['savepath'];
+			$data['file_url'] = " http://192.168.119.98/tp323/".$info[0]['savepath'].$info[0]['savename'];
 
 			//$model->where("id=$id")->save($data); // 根据条件更新记录
 			$result = $model->add($data);
@@ -122,6 +123,7 @@ class OtaController extends Controller {
 		$data['target_version'] = $_POST['target_version'];
 		$data['status'] = 1;
 		$data['description'] = $_POST['description'];
+		$data['datetime'] = date("Y-m-d H:i:s");
 		//var_dump($data);
 		$User->where("id=$id")->save($data);
 		
@@ -156,6 +158,38 @@ class OtaController extends Controller {
 	
 	}
 	
+	public function check_update()
+	{
+		$model_name = $_POST['model_name'];
+		$source_version = $_POST['source_version'];
+		//$model_name = "R3";
+		//$source_version = "R3_D10_140901";
+		$Model = D("OtaView");
+		$list = $Model->where("source_version=".'"'.$source_version.'"'."AND model=".'"'.$model_name.'"')->select();
+		//$list = $Model->where("source_version=$source_version AND model=$model_name")->select();
+
+		//\Think\Log::record($Model->getLastSql());
+		//var_dump($list);
+		
+		if($list != null){
+		$tmpdate = $list[0]["datetime"];
+		//\Think\Log::record($tmpdate);
+		//\Think\Log::record(strtotime($tmpdate));
+		$newest = 0;
+		for($i=0;$i<count($list);$i++){
+			//\Think\Log::record($i);
+			if(strtotime($list[$i]["datetime"])>strtotime($tmpdate)){
+				//\Think\Log::record('find bigger one!!!!');
+				$newest = $i;
+			}
+		}
+		}
+		//\Think\Log::record('------------steed----------------');
+		//var_dump($list[$newest]);
+		
+		$this->ajaxReturn($list[$newest]);
+
+	}
 	
 	
 }
