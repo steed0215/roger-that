@@ -461,7 +461,8 @@ window.statusOperateEvents = {
 
         $.ajax({
             type : 'post',
-            data : {
+			async:false,
+			data : {
                 id : row.id,
                 status : status
             },
@@ -469,10 +470,13 @@ window.statusOperateEvents = {
             url : 'http://192.168.119.98/tp323/index.php/home/ota/change_status',
             success : function(data) {
                 // your code
-
+				//$("#diff_tab").bootstrapTable('refresh', {silent: true});
 
             }
         });
+
+
+		//alert("ok.refresh!!!");
 
 		$("#diff_tab").bootstrapTable('refresh', {silent: true});
 
